@@ -106,7 +106,6 @@ $configData = @{
     )
 }
 
-$ssmsflag = 'Present'
 
 setup -ConfigurationData $configData
 
