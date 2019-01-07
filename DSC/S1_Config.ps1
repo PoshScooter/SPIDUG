@@ -1,12 +1,16 @@
 pause
 
+$sql2014 = Get-Item -Path 'C:\ISO\en_sql_server_2014_developer_edition_with_service_pack_3_x64_dvd_083c344f.iso'
+#$sql2017 = Get-Item -Path 'C:\iso\en_sql_server_2017_developer_x64_dvd_11296168.iso'
+
 ######################
 # TODO: Create the VM locally
-set-location '~\OneDrive\Github\SPIDUG'
+#set-location '~\OneDrive\Github\SPIDUG'
 $functions = Get-ChildItem .\functions -Filter *.ps1
 foreach ($f in $functions) {
     . "$($f.fullname)"
 }
+$parentvhd = get-item "$((Get-VMHost).VirtualMachinePath)\templates\win2016.vhdx"
 
 # i'm really lazy so copy this cheater function to a PS window for demo
 <#
@@ -22,9 +26,9 @@ $locCreds = New-Object System.Management.Automation.PSCredential (".\administrat
 
 $domCreds = New-Object System.Management.Automation.PSCredential ("poshscooter\administrator", $locpwd)
 
-$parentvhd = get-item "C:\VMs\templates\template2019.vhdx"
+
 $name = 's1'
-new-server -name $name -VMswitch 'nat' -parentvhd $parentvhd 
+new-server -name $name -parentvhd $parentvhd 
 
 pause 
 
@@ -54,12 +58,13 @@ invoke-command -VMName $name -credential $locCreds -scriptblock {
 
 pause
 
+# Add SQL ISO to VM
+Set-VMDvdDrive -VMName $name -Path $sql2014
 
-# TODO: run the DSC to set IP and rename
 
 Invoke-Command -VMName $name -Credential $locCreds -FilePath ".\DSC\$($name)_Config2.ps1" -ArgumentList $name
 
-Start-Sleep -Seconds 15
+Start-Sleep -Seconds 45
 
 invoke-command -VMName $name -Credential $locCreds -ScriptBlock { Get-DscLocalConfigurationManager }
 
@@ -77,7 +82,7 @@ invoke-command -VMName $name -Credential $locCreds -ScriptBlock {
 invoke-command -VMName $name -Credential $locCreds -ScriptBlock { Restart-Computer -Force }
 
 
-Invoke-Command -VMName $name -Credential $locCreds -ScriptBlock {
+Invoke-Command -VMName $name -Credential $domCreds -ScriptBlock {
     Set-DbcConfig -Name policy.instancemaxdop.userecommended -Value $true
     Restore-DbaDatabase -SqlInstance s1 -Path '\\dc1\Distro\packages\dbs\AdventureWorks2014.bak'
     Invoke-DbaCmd -SqlInstance s1 -File \\dc1\Distro\packages\dbs\instnwnd.sql

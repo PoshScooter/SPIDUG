@@ -7,7 +7,7 @@ param (
 Configuration Setup {
     Import-DscResource -ModuleName ComputerManagementDSC -ModuleVersion 5.2.0.0
     Import-DSCResource -ModuleName NetworkingDSC -ModuleVersion 6.1.0.0
-    Import-DSCResource -ModuleName SQLServerDSC -ModuleVersion 12.0.0.0
+    Import-DSCResource -ModuleName SQLServerDSC -ModuleVersion 12.1.0.0
     Import-DSCResource -ModuleName StorageDsc -ModuleVersion 4.1.0.0
 
     Node $allnodes.NodeName {
@@ -34,7 +34,7 @@ $configData = @{
     AllNodes = @(
         @{
             NodeName                    = 'localhost'
-            CompName                    = $name
+            CompName                    = 's1'
             Domain                      = 'Poshscooter'        
             PSDscAllowPlainTextPassword = $true
             DomCreds                    = $DomCreds

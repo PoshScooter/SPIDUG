@@ -1,4 +1,6 @@
 
+$sqlImage = "\\dc1\Distro\ISOs\en_sql_server_2014_developer_edition_with_service_pack_3_x64_dvd_083c344f.iso"
+
 Configuration Setup {
     Import-DscResource -ModuleName ComputerManagementDSC -ModuleVersion 5.2.0.0
     Import-DSCResource -ModuleName NetworkingDSC -ModuleVersion 6.1.0.0
@@ -36,17 +38,6 @@ Configuration Setup {
         } #>
 
 
-
-        MountImage ISO {
-            ImagePath   = "\\DC1\Distro\ISO\en_sql_server_2014_developer_edition_with_service_pack_3_x64_dvd_083c344f.iso"
-            DriveLetter = 'S'
-        }
-
-        WaitForVolume WaitForISO {
-            DriveLetter      = 'S'
-            RetryIntervalSec = 5
-            RetryCount       = 10
-        }
         #endregion Install prerequisites for SQL Server
 
         #region Install SQL Server
@@ -67,7 +58,7 @@ Configuration Setup {
             SQLTempDBDir         = 'C:\MSSQL\Data'
             SQLTempDBLogDir      = 'C:\MSSQL\Data'
             SQLBackupDir         = 'C:\MSSQL\Backup'
-            SourcePath           = 'S:\'
+            SourcePath           = 'd:\'
             UpdateEnabled        = 'False'
             ForceReboot          = $false
             PsDscRunAsCredential = $SqlInstallCredential

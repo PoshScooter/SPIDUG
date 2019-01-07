@@ -124,7 +124,7 @@ configuration NewDomain
             DnsDomain = 'poshscooter.com' 
             DnsServerIPAddress = '192.168.244.1','8.8.8.8' 
             AddressFamily = 'IPv4' 
-            Router = '192.168.244.244'
+            Router = '192.168.244.10'
             DependsOn = @('[WindowsFeature]DHCP') 
 
         } 
