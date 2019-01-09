@@ -86,7 +86,7 @@ configuration NewDomain
             DependsOn = '[ipaddress]setip'
             InterfaceAlias = 'ethernet'
             AddressFamily = 'IPv4'
-            Address = '192.168.244.244'
+            Address = '192.168.244.10'
 
         }
 
