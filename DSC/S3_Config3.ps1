@@ -1,4 +1,4 @@
-$name = 's1'
+$name = 's3'
 Configuration Setup {
     Import-DscResource -ModuleName ComputerManagementDSC -ModuleVersion 5.2.0.0
     Import-DSCResource -ModuleName NetworkingDSC -ModuleVersion 6.1.0.0
@@ -23,7 +23,7 @@ Configuration Setup {
             DependsOn = '[WindowsFeature]NetFramework35'
         }
 
-        #Removing due to time constraints on the build.
+        <#Removing due to time constraints on the build.
 
         Package ssms {
             Name      = "Microsoft SQL Server Management Studio - 17.9.1"
@@ -59,7 +59,7 @@ Configuration Setup {
             SourcePath           = 'd:\'
             UpdateEnabled        = 'False'
             ForceReboot          = $false
-            PsDscRunAsCredential = $node.SqlInstallCredential
+            PsDscRunAsCredential = $SqlInstallCredential
             DependsOn            = '[WindowsFeature]NetFramework35', '[WindowsFeature]NetFramework45'
         }
 
@@ -69,17 +69,7 @@ Configuration Setup {
             ProtocolName         = 'Tcp'
             IsEnabled            = $true
             RestartService       = $true
-            PsDscRunAsCredential = $node.SystemAdministratorAccount
-            TcpPort              = 1433
-        }
-
-        SqlAlwaysOnService 'EnableAlwaysOn'
-        {
-            Ensure               = 'Absent'
-            ServerName           = $node.CompName
-            InstanceName         = 'MSSQLSERVER'
-            RestartTimeout       = 120
-            PsDscRunAsCredential = $node.SystemAdministratorAccount
+            PsDscRunAsCredential = $SystemAdministratorAccount
         }
         #endregion Install SQL Server
     }
@@ -88,7 +78,7 @@ Configuration Setup {
 $DomPwd = ConvertTo-SecureString "Password!" -AsPlainText -Force
 $DomCreds = New-Object System.Management.Automation.PSCredential ("PoShScooter\administrator", $DomPwd)
 
-$saCreds = New-Object System.Management.Automation.PSCredential ("sa", $DomPwd)
+$saCreds = New-Object System.Management.Automation.PSCredential ("PoShScooter\administrator", $DomPwd)
 
 $configData = @{
     AllNodes = @(

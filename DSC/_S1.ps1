@@ -1,12 +1,22 @@
 pause
 
+$sql2014 = Get-Item -Path 'C:\ISO\en_sql_server_2014_developer_edition_with_service_pack_3_x64_dvd_083c344f.iso'
+#$sql2017 = Get-Item -Path 'C:\iso\en_sql_server_2017_developer_x64_dvd_11296168.iso'
+$locpwd = ConvertTo-SecureString "Password!" -AsPlainText -Force
+$locCreds = New-Object System.Management.Automation.PSCredential (".\administrator", $locpwd)
+$domCreds = New-Object System.Management.Automation.PSCredential ("poshscooter\administrator", $locpwd)
+
+$name = 's1'
+
+
 ######################
 # TODO: Create the VM locally
-set-location '~\OneDrive\Github\SPIDUG'
+#set-location '~\OneDrive\Github\SPIDUG'
 $functions = Get-ChildItem .\functions -Filter *.ps1
 foreach ($f in $functions) {
     . "$($f.fullname)"
 }
+$parentvhd = get-item "$((Get-VMHost).VirtualMachinePath)\templates\win2016.vhdx"
 
 # i'm really lazy so copy this cheater function to a PS window for demo
 <#
@@ -17,17 +27,8 @@ function x ($y) {
 }
 #>
 
-$locpwd = ConvertTo-SecureString "Password!" -AsPlainText -Force
-$locCreds = New-Object System.Management.Automation.PSCredential (".\administrator", $locpwd)
 
-$domCreds = New-Object System.Management.Automation.PSCredential ("poshscooter\administrator", $locpwd)
-
-$parentvhd = get-item "C:\VMs\templates\template2019.vhdx"
-$name = 's2' 
-
-Pause
-# TODO: create VM
-new-server -name $name -VMswitch 'nat' -parentvhd $parentvhd 
+new-server -name $name -parentvhd $parentvhd 
 
 pause 
 
@@ -57,25 +58,40 @@ invoke-command -VMName $name -credential $locCreds -scriptblock {
 
 pause
 
+# Add SQL ISO to VM
+Set-VMDvdDrive -VMName $name -Path $sql2014
 
-# TODO: run the DSC to set IP and rename
 
 Invoke-Command -VMName $name -Credential $locCreds -FilePath ".\DSC\$($name)_Config2.ps1" -ArgumentList $name
 
-Start-Sleep -Seconds 15
+Start-Sleep -Seconds 45
 
 invoke-command -VMName $name -Credential $locCreds -ScriptBlock { Get-DscLocalConfigurationManager }
 
 # TODO: run the DSC install SQL
 
 #grant rights to share for new VM
-invoke-command -VMName 'dc1' -Credential $domCreds -ScriptBlock { Grant-SmbShareAccess -Name 'distro' -AccountName "poshscooter\$($args[0])`$" -AccessRight 'full' -Confirm:$false } -ArgumentList 's4'
+invoke-command -VMName 'dc1' -Credential $domCreds -ScriptBlock { Grant-SmbShareAccess -Name 'distro' -AccountName "poshscooter\$($args[0])`$" -AccessRight 'full' -Confirm:$false } -ArgumentList $name
 
-Invoke-Command -VMName $name -Credential $locCreds -FilePath ".\DSC\$($name)_Config3.ps1" 
+Invoke-Command -VMName $name -Credential $locCreds -FilePath ".\DSC\$($name)_Config3.ps1"
 
 invoke-command -VMName $name -Credential $locCreds -ScriptBlock {
     New-NetFirewallRule -Name 'allow all' -Direction Inbound -Action Allow -Enabled True -DisplayName 'allow all'
 }
 
 invoke-command -VMName $name -Credential $locCreds -ScriptBlock { Restart-Computer -Force }
+
+
+Invoke-Command -VMName $name -Credential $domCreds -ScriptBlock {
+    Set-DbcConfig -Name policy.instancemaxdop.userecommended -Value $true
+    Restore-DbaDatabase -SqlInstance s1 -Path '\\dc1\Distro\packages\dbs\AdventureWorks2014.bak'
+    Invoke-DbaCmd -SqlInstance s1 -File \\dc1\Distro\packages\dbs\instnwnd.sql
+    Install-DbaWhoIsActive -SqlInstance s1 -Database Master
+    Install-DbaFirstResponderKit -SqlInstance s1 -Database master
+    Install-DbaMaintenanceSolution -SqlInstance s1 -Database master -BackupLocation \\dc1\Distro\backups\ -InstallJobs -ReplaceExisting -Solution All
+    Set-DbaMaxDop -SqlInstance s1 
+}
+
+
+
 

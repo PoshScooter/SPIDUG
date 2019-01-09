@@ -22,30 +22,18 @@ Configuration Setup {
             DependsOn = '[WindowsFeature]NetFramework35'
         }
 
-        <#Removing due to time constraints on the build.
+        #Removing due to time constraints on the build.
 
         Package ssms {
             Name      = "Microsoft SQL Server Management Studio - 17.9.1"
             Path      = "\\DC1\Distro\Packages\ssms\SSMS-Setup-ENU.exe"
-            Ensure    = $installSsms
+            Ensure    = 'Present'
             LogPath   = "$($env:TEMP)\ssms.log"
             ProductId = ''
             Arguments = '/install /QUIET /norestart'
             DependsOn = '[SqlSetup]InstallDefaultInstance'
         } #>
 
-
-
-        MountImage ISO {
-            ImagePath   = "\\dc1\Distro\iso\SQLServer2017-x64-ENU-Dev.iso"
-            DriveLetter = 'S'
-        }
-
-        WaitForVolume WaitForISO {
-            DriveLetter      = 'S'
-            RetryIntervalSec = 5
-            RetryCount       = 10
-        }
         #endregion Install prerequisites for SQL Server
 
         #region Install SQL Server
@@ -66,7 +54,7 @@ Configuration Setup {
             SQLTempDBDir         = 'C:\MSSQL\Data'
             SQLTempDBLogDir      = 'C:\MSSQL\Data'
             SQLBackupDir         = 'C:\MSSQL\Backup'
-            SourcePath           = 'S:\'
+            SourcePath           = 'D:\'
             UpdateEnabled        = 'False'
             ForceReboot          = $false
             PsDscRunAsCredential = $SqlInstallCredential
@@ -80,8 +68,16 @@ Configuration Setup {
             ProtocolName         = 'Tcp'
             IsEnabled            = $true
             RestartService       = $true
-            TcpPort              = 1433
             PsDscRunAsCredential = $SystemAdministratorAccount
+            TcpPort              = 1433
+        }
+
+        SqlAlwaysOnService 'EnableAlwaysOn'
+        {
+            Ensure               = 'Absent'
+            ServerName           = 'S2'
+            InstanceName         = 'MSSQLSERVER'
+            RestartTimeout       = 120
 
         }
     }

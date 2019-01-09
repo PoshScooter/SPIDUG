@@ -1,8 +1,4 @@
-param (
-    [Parameter(Mandatory)]
-    $name
-
-)
+$name = 's3'
 
 Configuration Setup {
     Import-DscResource -ModuleName ComputerManagementDSC -ModuleVersion 5.2.0.0
@@ -34,7 +30,7 @@ $configData = @{
     AllNodes = @(
         @{
             NodeName                    = 'localhost'
-            CompName                    = 's2'
+            CompName                    = $name
             Domain                      = 'Poshscooter'        
             PSDscAllowPlainTextPassword = $true
             DomCreds                    = $DomCreds
