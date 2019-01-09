@@ -1,4 +1,12 @@
 pause
+<#
+    Is the demo ready?
+    Cntl - Shift - P
+        Tasks: Run Task
+            Test
+    psedit .\DemoReady.Tests.ps1
+#>
+
 
 $name = 's3'
 $sql2017 = Get-Item -Path 'C:\iso\en_sql_server_2017_developer_x64_dvd_11296168.iso'
@@ -47,7 +55,9 @@ Set-VMDvdDrive -VMName $name -Path $sql2017
 
 # Run the config to setup the Local Configuration Manager (LCM) to reboot when needed
 Set-location 'C:\code\github\SPIDUG'
+psedit ".\DSC\$($name)_Config2.ps1"
 Invoke-Command -VMName $name -Credential $locCreds -FilePath ".\DSC\$($name)_Config2.ps1" -ArgumentList $name
+
 
 Start-Sleep -Seconds 60
 
@@ -57,6 +67,7 @@ invoke-command -VMName $name -Credential $locCreds -ScriptBlock { Get-DscLocalCo
 invoke-command -VMName 'dc1' -Credential $domCreds -ScriptBlock { Grant-SmbShareAccess -Name 'distro' -AccountName "poshscooter\$($args[0])`$" -AccessRight 'full' -Confirm:$false } -ArgumentList $name
 
 # TODO: run the DSC install SQL
+psedit ".\DSC\$($name)_Config3.ps1"
 Invoke-Command -VMName $name -Credential $locCreds -FilePath ".\DSC\$($name)_Config3.ps1"
 
 invoke-command -VMName $name -Credential $locCreds -ScriptBlock {
@@ -67,8 +78,21 @@ invoke-command -VMName $name -Credential $locCreds -ScriptBlock { Restart-Comput
 
 
 # run DbcCheck to see the current status ON S!
-    Invoke-DbcCheck -SqlInstance s1 -ComputerName s1 -Tags Instance
+Invoke-DbcCheck -SqlInstance s1 -ComputerName s1 -Tags Instance
 
-    Invoke-DbcCheck -SqlInstance s2 -ComputerName s2 -Tags Instance
+Invoke-DbcCheck -SqlInstance s2 -ComputerName s2 -Tags Instance
 
-    Invoke-DbcCheck -SqlInstance s3 -ComputerName s3 -Tags Instance
+Invoke-DbcCheck -SqlInstance s3 -ComputerName s3 -Tags Instance
+
+
+
+
+# Restore a database from backup easily 
+Restore-DbaDatabase -SqlInstance s2 -SqlCredential sa -Path \\dc1\Distro\backups\ -DatabaseName northwind
+
+
+# full migration!
+Start-DbaMigration -Source S1 -Destination S3 -BackupRestore -SharedPath \\dc1\distro\backups
+
+Invoke-DbcCheck -SqlInstance s3 -ComputerName s3 -Tags Instance
+
