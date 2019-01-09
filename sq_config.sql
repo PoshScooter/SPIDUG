@@ -4,10 +4,29 @@ EXEC sp_configure 'backup compression default', 1 ;
 RECONFIGURE WITH OVERRIDE ;  
 GO 
 
+EXEC SP_CONFIGURE 'Show Advanced Options', 1
+RECONFIGURE
+GO
+
+EXEC sp_configure 'optimize for ad hoc workloads', 1
+RECONFIGURE
+GO
 
 ALTER DATABASE [model] MODIFY FILE ( NAME = N'modellog', FILEGROWTH = 102400KB )
 GO
 ALTER DATABASE [model] MODIFY FILE ( NAME = N'modeldev', FILEGROWTH = 102400KB )
+GO
+
+EXEC sp_configure 'remote admin connections', 1 
+GO
+RECONFIGURE
+GO
+
+USE [msdb]
+GO
+EXEC msdb.dbo.sp_add_operator @name=N'The DBA Team', 
+		@enabled=1, 
+		@pager_days=0
 GO
 
 /*
