@@ -5,7 +5,7 @@ pause
         Tasks: Run Task
             Test
     psedit .\DemoReady.Tests.ps1
-#>
+#> 
 
 
 $name = 's3'

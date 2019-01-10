@@ -1,18 +1,16 @@
 # SPIDUG
 Scripts for presentation at SQL Professionals in Detroit
 
-# PowerPoint Presentation
-[PDF](https://github.com/PoshScooter/SPIDUG/blob/master/Powershell_SPIDUG.pdf)
 
-# DBATools
+## LINKS
+[PowerPoint Presentation](https://github.com/PoshScooter/SPIDUG/blob/master/Powershell_SPIDUG.pdf)
 
-[Website](Https://dbatools.io)
+[DBATools](Https://dbatools.io) 
 
-# DBAChecks
+[DBAChecks](https://dbachecks.io)
 
-[GitHub](https://dbachecks.io)
+[Pester](https://github.com/pester/Pester)
 
-# Pester
+[VScode](https://code.visualstudio.com/download)
 
-[GitHub](https://github.com/pester/Pester)
-
+[Azure Data Studio](https://docs.microsoft.com/en-us/sql/azure-data-studio/download?view=sql-server-2017)
